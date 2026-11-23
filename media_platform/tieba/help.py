@@ -36,6 +36,30 @@ GENDER_MALE = "sex_male"
 GENDER_FEMALE = "sex_female"
 
 
+def parse_human_count(value: Any) -> int:
+    """
+    [本机修复] 贴吧接口的计数可能是人类可读字符串，如 '2.9W'、'1.2万'、'3亿'、'1,234'，
+    直接赋给 int 字段会触发 pydantic int_parsing 校验错误。
+    """
+    if value is None or value == "":
+        return 0
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, (int, float)):
+        return int(value)
+    text = str(value).strip().replace(",", "").replace("+", "")
+    multiplier = 1
+    for suffix, mult in (("亿", 100_000_000), ("W", 10_000), ("w", 10_000), ("万", 10_000)):
+        if text.endswith(suffix):
+            multiplier = mult
+            text = text[: -len(suffix)]
+            break
+    try:
+        return int(float(text) * multiplier)
+    except (TypeError, ValueError):
+        return 0
+
+
 class TieBaExtractor:
     def __init__(self):
         pass
@@ -148,7 +172,7 @@ class TieBaExtractor:
                 user_nickname=mask_nickname(user.get("show_nickname") or user.get("user_name") or ""),
                 tieba_name=tieba_name,
                 tieba_link=self._tieba_link_from_name(tieba_name),
-                total_replay_num=item.get("post_num") or 0,
+                total_replay_num=parse_human_count(item.get("post_num")),
             )
             result.append(tieba_note)
         return result
@@ -181,8 +205,8 @@ class TieBaExtractor:
             user_nickname=mask_nickname(author.get("name_show") or author.get("name") or ""),
             tieba_name=tieba_name,
             tieba_link=self._tieba_link_from_name(tieba_name),
-            total_replay_num=thread.get("reply_num") or 0,
-            total_replay_page=page.get("total_page") or 0,
+            total_replay_num=parse_human_count(thread.get("reply_num")),
+            total_replay_page=parse_human_count(page.get("total_page")),
         )
         return note
 
@@ -205,7 +229,7 @@ class TieBaExtractor:
             user = user_map.get(str(item.get("author_id"))) or {}
             comment = TiebaComment(
                 comment_id=comment_id,
-                sub_comment_count=item.get("sub_post_number") or 0,
+                sub_comment_count=parse_human_count(item.get("sub_post_number")),
                 content=self._extract_api_content_text(item.get("content")),
                 note_url=note_detail.note_url,
                 creator_hash=anonymize_user_id(self._api_user_link(user)),

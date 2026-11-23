@@ -60,12 +60,17 @@ def get_current_date() -> str:
 def get_time_str_from_unix_time(unixtime):
     """
     Unix integer timestamp ==> datetime string
-    :param unixtime:
+    :param unixtime: int/float timestamp, or numeric string (e.g. Baidu tieba API returns "1795397960")
     :return:
     """
-    if int(unixtime) > 1000000000000:
-        unixtime = int(unixtime) / 1000
-    return time.strftime('%Y-%m-%d %X', time.localtime(unixtime))
+    try:
+        # [本机修复] 部分平台 API（如贴吧）返回字符串时间戳，直接传给 time.localtime 会 TypeError
+        ts = int(float(str(unixtime).strip() or 0))
+    except (TypeError, ValueError):
+        ts = 0
+    if ts > 1000000000000:
+        ts = ts // 1000
+    return time.strftime('%Y-%m-%d %X', time.localtime(ts))
 
 
 def get_date_str_from_unix_time(unixtime):
@@ -74,9 +79,14 @@ def get_date_str_from_unix_time(unixtime):
     :param unixtime:
     :return:
     """
-    if int(unixtime) > 1000000000000:
-        unixtime = int(unixtime) / 1000
-    return time.strftime('%Y-%m-%d', time.localtime(unixtime))
+    try:
+        # [本机修复] 兼容字符串时间戳（见 get_time_str_from_unix_time）
+        ts = int(float(str(unixtime).strip() or 0))
+    except (TypeError, ValueError):
+        ts = 0
+    if ts > 1000000000000:
+        ts = ts // 1000
+    return time.strftime('%Y-%m-%d', time.localtime(ts))
 
 
 def get_unix_time_from_time_str(time_str):

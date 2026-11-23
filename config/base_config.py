@@ -82,6 +82,8 @@ BROWSER_LAUNCH_TIMEOUT = 60
 # 这种方式反检测效果最好，因为直接使用用户真实浏览器的所有 Cookie、扩展和浏览历史
 # [本机配置] 改为 False：由程序自动拉起带调试端口的 Chrome（独立 profile 位于 browser_data/），
 # 不需要手动打开 chrome://inspect 开关；若想复用日常 Chrome 的登录态，可改回 True 并按 README 开启远程调试
+# [本机配置] 改为 False：由程序自动拉起带调试端口的 Chrome（独立 profile 位于 browser_data/），
+# 若复用日常 Chrome 登录态可改回 True 并开启远程调试；贴吧手动登录时可临时设 True 复用已开浏览器。
 CDP_CONNECT_EXISTING = False
 
 # 程序结束时是否自动关闭浏览器
