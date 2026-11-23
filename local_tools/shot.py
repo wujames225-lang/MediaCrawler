@@ -101,6 +101,18 @@ def main() -> int:
             out = f"{prefix}_qr_{i}.png"
             cv2.imwrite(out, crop)
             print(f"QR_SAVED\t{out}\tbox={box}")
+        # 可选：按 selector 单独截二维码元素（第三个参数）
+        if len(sys.argv) > 3:
+            selector = sys.argv[3]
+            try:
+                loc = page.locator(selector).first
+                loc.wait_for(state="visible", timeout=15000)
+                elem_path = f"{prefix}_qr.png"
+                loc.screenshot(path=elem_path)
+                print(f"ELEM_SAVED\t{elem_path}\t{selector}")
+            except Exception as exc:
+                print(f"ELEM_ERROR\t{selector}\t{exc}")
+
         print("DONE")
 
     sys.stdout.flush()

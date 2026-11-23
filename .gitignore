@@ -184,3 +184,6 @@ debug_tools
 
 database/*.db
 .omx/
+# 本机截图/二维码临时文件（local_tools 产物）
+local_tools/*.png
+local_tools/*_ok.txt

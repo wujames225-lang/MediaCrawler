@@ -89,14 +89,16 @@ async def health_check():
 async def check_environment():
     """Check if MediaCrawler environment is configured correctly"""
     try:
-        # Run uv run main.py --help command to check environment
+        # [本机配置] 直接用当前解释器检查环境，避免嵌套调用 uv
+        # （Windows 上服务由 uv 拉起时，子进程 uv 争抢 %LOCALAPPDATA%\uv\cache\.lock 会报
+        #  "Could not acquire lock / 拒绝访问"，导致 WebUI 误报 Environment check failed）
         # Use PROJECT_ROOT so it works regardless of where uvicorn was started
         if sys.platform == "win32":
             loop = asyncio.get_running_loop()
             process = await loop.run_in_executor(
                 None,
                 lambda: subprocess.run(
-                    ["uv", "run", "main.py", "--help"],
+                    [sys.executable, "main.py", "--help"],
                     capture_output=True,
                     timeout=30.0,
                     cwd=str(PROJECT_ROOT)
@@ -105,7 +107,7 @@ async def check_environment():
             stdout, stderr = process.stdout, process.stderr  # bytes
         else:
             process = await asyncio.create_subprocess_exec(
-                "uv", "run", "main.py", "--help",
+                sys.executable, "main.py", "--help",
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
                 cwd=str(PROJECT_ROOT)  # Project root directory

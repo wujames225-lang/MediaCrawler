@@ -18,6 +18,7 @@
 
 import asyncio
 import subprocess
+import sys
 import signal
 import os
 from typing import Optional, List
@@ -204,7 +205,8 @@ class CrawlerManager:
 
     def _build_command(self, config: CrawlerStartRequest) -> list:
         """Build main.py command line arguments"""
-        cmd = ["uv", "run", "python", "main.py"]
+        # [本机配置] 用当前 venv 解释器直接启动，避免嵌套 uv 的缓存锁问题
+        cmd = [sys.executable, "main.py"]
 
         cmd.extend(["--platform", config.platform.value])
         cmd.extend(["--lt", config.login_type.value])
